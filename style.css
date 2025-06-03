@@ -166,13 +166,13 @@ header section p {
 .logo {
     display: flex;
     align-items: center;
-    gap: 8px; /* Espaçamento entre ícone e texto */
+    gap: 8px; 
     font-weight: bold;
     font-size: 1.2rem;
 }
 
 .logo-menu {
-    width: 60px;  /* Ajuste conforme o tamanho do seu ícone */
+    width: 60px; 
     height: auto;
     border-radius: 25px;
 }
@@ -385,7 +385,7 @@ header section p {
 
 #chatbox {
     width: 100%;
-    height: 300px; /* ou ajuste conforme quiser */
+    height: 300px;
     overflow-y: auto;
     padding: 10px;
     background-color: #f5f5f5;
@@ -650,7 +650,6 @@ footer div, footer p {
     }
 }
 
-/* Telas muito pequenas até 480px */
 @media (max-width: 480px) {
 
 
