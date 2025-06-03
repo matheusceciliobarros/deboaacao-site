@@ -1,0 +1,693 @@
+/* style.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(-120px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+}
+
+@keyframes tittle {
+    from {
+        opacity: 0;
+        transform: translateY(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+}
+
+.appear-animation {
+    animation: appear linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+}
+
+.content {
+    padding: 0 0 100px 0;
+
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: "Montserrat";
+
+}
+
+header {
+    background-image: url(img/SP.jpg);
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+    height: 95vh
+}
+
+header nav {
+    width: 100%;
+    height: 10%;
+    display: flex;
+    align-items: center;
+    padding: 0 100px;
+    justify-content: space-between;
+}
+
+header h1 {
+    color: White;
+    font-size: 32px;
+}
+
+header ul {
+    display: flex;
+    list-style: none;
+    gap: 18px;
+}
+
+header ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+header ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    position: relative;
+
+}
+
+header ul li a::before {
+    content: '';
+    background-color: white;
+    height: 2px;
+    width: 0%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transition: width 0.3s ease;
+}
+
+header ul li a:hover::before {
+    width: 100%;
+}
+
+main {
+    background-color: #6E758F;
+}
+
+#about {
+    height: 95vh;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 100px;
+}
+
+#about-text {
+    color: white;
+    width: 30%;
+    line-height: 33px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+#about-img {
+    width: 55%;
+}
+
+#about-img figure {
+    width: 100%;
+
+}
+
+#about-img figure img {
+    width: 100%;
+    border-radius: 50px 0 50px 0;
+    box-shadow: 6px 6px 18px #303548;
+}
+
+header section {
+    display: flex;
+    flex-direction: column;
+    height: 90%;
+    justify-content: center;
+    align-items: center;
+    animation: tittle 1s ease-in-out;
+}
+
+header section h1 {
+    font-size: 90px;
+}
+
+header section p {
+    color: white;
+    font-size: 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espaçamento entre ícone e texto */
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.logo-menu {
+    width: 60px;  /* Ajuste conforme o tamanho do seu ícone */
+    height: auto;
+    border-radius: 25px;
+}
+
+
+
+#map-section {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+#map-section h1 {
+    color: white;
+
+}
+
+#map {
+    background-color: white;
+    width: 80%;
+    height: 90%;
+}
+
+
+
+#map-container {
+    width: 80% !important;
+    height: 90vh !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    margin-bottom: 2rem !important;
+}
+
+#map-frame {
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
+}
+
+#map-controls {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+#map-controls button {
+    background: #131929 !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.8rem 2rem !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    font-size: 1rem !important;
+    transition: background 0.3s !important;
+}
+
+#map-controls button:hover {
+    background: #253152 !important;
+}
+
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.878);
+    box-shadow: inset rgba(48, 45, 45, 0.878);
+    border-radius: 5px;
+}
+
+
+::-webkit-scrollbar-thumb {
+    background: #4a61a0;
+    border-radius: 10px;
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+    background: #253152;
+}
+
+#chatbot-btn {
+    width: 75px;
+    height: 75px;
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    background-color: white;
+    padding: 8px;
+    box-shadow: 3px 3px 5px black;
+    border-radius: 20px 20px 20px 20px;
+    border: none;
+    transform-origin: right bottom;
+    transition: 0.3s ease-in-out;
+    z-index: 1;
+}
+
+#chatbot-btn:hover {
+    border-radius: 25px 25px 0px 25px;
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+#chatbot-btn img {
+    width: 100%;
+    height: 100%;
+}
+
+#chatbot {
+    background-color: white;
+    position: fixed;
+    width: 340px;
+    height: 460px;
+    right: 30px;
+    bottom: 30px;
+    border-radius: 25px 25px 0px 25px;
+    box-shadow: 3px 3px 5px black;
+    transform-origin: right bottom;
+    scale: 0;
+    transition: 0.3s ease-in-out;
+    z-index: 1;
+}
+
+#chat-form {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#chatbot-header {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 15px;
+    padding-right: 15px;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    background-color: #131929;
+    color: white;
+    border-radius: 15px 15px 0px 0px;
+    gap: 10px;
+    font-family: "Montserrat";
+    font-weight: bold;
+}
+
+#chatbot-header img {
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    border-radius: 15px;
+    padding: 5px;
+}
+
+#chatbot-footer {
+    width: 100%;
+    display: flex;
+    padding: 10px;
+    justify-content: space-between;
+    background-color: #131929;
+    border-radius: 0px 0px 0px 15px;
+    padding: 10px;
+}
+
+#chatbot-footer input {
+    width: 80%;
+    height: 40px;
+    border: none;
+    border-radius: 15px 0px 0px 15px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+#chatbot-footer button {
+    background-color: #6E758F;
+    color: white;
+    width: 25%;
+    height: 40px;
+    border: none;
+    border-radius: 0px 5px 5px 0;
+    font-family: "Montserrat";
+    font-weight: bold;
+    padding: 8px 12px;
+    margin-left: 5px;
+    cursor: pointer;
+
+}
+
+#close-chat {
+    scale: 1.3;
+    background-color: transparent;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+#close-chat:hover {
+    color: #d3d3d3;
+}
+
+#chatbox {
+    width: 100%;
+    height: 300px; /* ou ajuste conforme quiser */
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    margin: 5px 0;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 80%;
+    word-wrap: break-word;
+    font-size:13px;
+}
+
+.user-message {
+    background-color: #d1e7dd;
+    align-self: flex-end;
+    border-radius: 15px 0px 15px 15px;
+}
+
+.bot-message {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    align-self: flex-start;
+    border-radius: 0px 15px 15px 15px;
+}
+
+#suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+}
+
+.suggestion-btn {
+    background: #f0f0f0d5;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.suggestion-btn:hover {
+    background: #d3d3d3;
+}
+
+
+footer {
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    background-color: #131929;
+    color: white;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+footer div, footer p {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+
+
+#creditos {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 30px;
+    color: white;
+    width: 50%;
+    padding-left: 100px;
+    padding-right: 10px;
+}
+
+#criadores {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#criadores ul {
+
+    list-style: none;
+}
+
+#criadores ul li {
+    margin-bottom: 2px;
+}
+
+#texto-doação p {
+    font-style: italic;
+}
+
+#contatos {
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    padding: 50px;
+}
+
+
+
+@media (max-width: 1024px) {
+    header nav {
+        padding: 0 40px;
+    }
+
+    #about {
+        flex-direction: column;
+        height: auto;
+        gap: 40px;
+        padding: 60px 20px;
+    }
+
+    #about-text {
+        width: 90%;
+        text-align: center;
+        align-items: center;
+    }
+
+    #about-img {
+        width: 90%;
+    }
+
+    #map {
+        width: 95%;
+        height: 80%;
+    }
+
+    footer {
+        flex-direction: row;
+        align-items: center;
+        padding: 40px 20px;
+        height: auto;
+        gap: 40px;
+    }
+
+        #contato{
+        padding: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    header nav {
+        flex-direction: column;
+        height: auto;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    header section h1 {
+        font-size: 60px;
+        text-align: center;
+    }
+
+    header section p {
+        font-size: 18px;
+        text-align: center;
+    }
+
+    #map {
+        height: 70%;
+    }
+
+    #chatbot {
+        width: 90%;
+        height: 400px;
+        right: 5%;
+        bottom: 20px;
+    }
+
+    footer {
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 00px;
+        height: auto;
+        gap: 40px;
+    }
+
+    #creditos {
+        width: 50%;
+        flex-direction: column;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #contato{
+        padding: 0;
+    }
+}
+
+
+
+@media (max-width: 768px) {
+    .appear-animation {
+        animation: appear linear;
+        animation-timeline: view();
+        animation-range: entry 0% cover 20%;
+    }
+
+        #contato{
+        padding: 0;
+    }
+
+    @keyframes appear {
+        from {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0px);
+        }
+    }
+
+    header nav {
+        flex-direction: column;
+        height: auto;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    header section h1 {
+        font-size: 60px;
+        text-align: center;
+    }
+
+    header section p {
+        font-size: 18px;
+        text-align: center;
+    }
+
+    #map {
+        height: 70%;
+    }
+
+    #chatbot {
+        width: 90%;
+        height: 400px;
+        right: 5%;
+        bottom: 20px;
+    }
+
+    #map-section h1 {
+        font-size: 20px;
+        text-align: center;
+    }
+
+        #contato{
+        padding: 0;
+    }
+}
+
+/* Telas muito pequenas até 480px */
+@media (max-width: 480px) {
+
+
+    header section h1 {
+        font-size: 45px;
+    }
+
+    header section p {
+        font-size: 16px;
+    }
+
+    #about-text h2 {
+        font-size: 28px;
+    }
+
+    #about-text p {
+        font-size: 16px;
+    }
+
+    #chatbot {
+        width: 90%;
+        height: 350px;
+        right: 5%;
+    }
+
+    #chatbot-btn {
+        width: 60px;
+        height: 60px;
+    }
+
+    #map {
+        height: 60%;
+    }
+
+        #contato{
+        padding: 0;
+    }
+
+}
+

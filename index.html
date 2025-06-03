@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>De Boa Ação ✨</title>
+    <link rel="icon" type="image/png" href="img/icon.jpeg">
+</head>
+
+<body>
+    <button id="chatbot-btn"><img src="img/chatbot.png" alt=""></button>
+
+    <section id="chatbot">
+        <form action="" id="chat-form">
+            <div id="chatbot-header">
+                <img src="img/chatbot.png" alt="">
+                <p style="text-align: center;">Chat - Carolina Maria de Jesus</p>
+                <button id="close-chat" type="button">X</button>
+            </div>
+
+            <div id="chatbox"></div>
+
+            <div id="suggestions"></div> <!-- Sugestões aqui -->
+
+            <div id="chatbot-footer">
+                <input type="text" name="message" id="user-input" autocomplete="off">
+                <button type="submit">Enviar</button>
+            </div>
+        </form>
+    </section>
+
+    <header>
+        <nav>
+            <h1>
+                <div class = "logo"><img src="img/icon.jpeg" alt="Logo" class = "logo-menu">De Boa Ação</div>
+            </h1>
+            <ul>
+                <li><a href="#about">Sobre nós</a></li>
+                <li><a href="#map-section">Mapa</a></li>
+                <li><a href="#contatos">Contatos</a></li>
+            </ul>
+        </nav>
+        <section>
+            <h1 class="appear-animation">De Boa Ação</h1>
+            <p>Pequenas ações, grandes transformações.</p>
+        </section>
+    </header>
+
+    <main>
+        <section id="about" class="content">
+            <article id="about-text" class="appear-animation">
+                <h2>Nosso projeto</h2>
+                <p>Nosso projeto é um mapa interativo com pontos de doação e serviços sociais gratuitos em São Paulo, alinhado aos Objetivos de Desenvolvimento Sustentável da ONU (ODS 1, 2 e 10), promovendo inclusão, combate à pobreza, fome e redução das desigualdades.</p>
+            </article>
+            <article id="about-img" class="appear-animation">
+                <figure>
+                    <img src="img/doacao.webp" alt="">
+                </figure>
+            </article>
+        </section>
+
+        <section id="map-section" class="content appear-animation">
+            <h1>Encontre o ponto de doação mais próximo!</h1>
+            <div id="map-container">
+                <iframe id="map-frame" src=""></iframe>
+            </div>
+            <div id="map-controls">
+                <button id="prev-map">Anterior</button>
+                <button id="next-map">Próximo</button>
+            </div>
+    </main>
+
+    <footer>
+        <article id="creditos">
+            <section id="criadores">
+                <h1>Criadores do projeto</h1>
+                <ul>
+                    <li>Adrielly Molina Giacon</li>
+                    <li>Bruno Pereira Alves</li>
+                    <li>Gabriel De França Gaudêncio</li>
+                    <li>Larissa Torres Ferreira</li>
+                    <li>Matheus Cecilio Barros</li>
+                    <li>Matheus Fabbri Vicente</li>
+                    <li>Otavio Alves Cruz De Oliveira Santos</li>
+                    <li>Pedro De Oliveira Faichel</li>
+                    <li>Victoria Andreozzi Gualano</li>
+                    <li>Vinicius Leonardo Da Silva</li>
+                </ul>
+            </section>
+            <section id="texto-doação">
+                <p>"Doar é um ato de empatia e solidariedade! Nossa página conecta quem quer ajudar e quem mais precisa, promovendo esperança e dignidade."</p>
+            </section>
+        </article>
+
+        <article id="contatos">
+            <h1>Contatos</h1>
+            <p>Grupo De Boa Ação</p>
+            <p>Email: deboaacao@gmail.com</p>
+            <p>Instagram: @deboaacao</p>
+        </article>
+    </footer>
+    <script src="script.js"></script>
+</body>
+
+</html>
