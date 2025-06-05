@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     }
     
     try {
-        const resposta = await fetch('https://projeto-deboacao.onrender.com', {
+        const resposta = await fetch('https://projeto-deboacao.onrender.com/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
