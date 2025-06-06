@@ -4,6 +4,7 @@ export default async function handler(req, res) {
     }
     
     try {
+        console.log("KEY:", process.env.key);
         const resposta = await fetch('https://projeto-deboacao.onrender.com/chat', {
             method: 'POST',
             headers: {
