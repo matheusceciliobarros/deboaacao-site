@@ -13,8 +13,22 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify(req.body)
         });
+        const contentType = resposta.headers.get("content-type");
+
+        if (!resposta.ok) {
+            const texto = await resposta.text();
+            console.error("Erro da API:", texto);
+            return res.status(500).json({ error: 'Erro da API externa', detalhes: texto });
+        }
+        
+        if (!contentType || !contentType.includes("application/json")) {
+            const texto = await resposta.text();
+            return res.status(500).json({ error: 'Resposta não é JSON', detalhes: texto });
+        }
+        
         const data = await resposta.json();
         res.status(200).json(data);
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Erro interno' });
