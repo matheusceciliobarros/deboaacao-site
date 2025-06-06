@@ -124,5 +124,3 @@ window.onload = function() {
     chatbox.appendChild(botDiv);
     chatbox.scrollTop = chatbox.scrollHeight;
 };
-
-console.log("KEY:", process.env.key);
