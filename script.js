@@ -79,6 +79,10 @@ suggestions.forEach(suggestion => {
     suggestionsDiv.appendChild(btn);
 });
 
+const history = [
+    { role: "system", content: "Você é uma assistente simpática, direta e informativa de uma ONG que ajuda comunidades carentes. Nunca use estilos na mensagem, como negrito ou emojis." }
+];
+
 chatForm.addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -91,22 +95,33 @@ chatForm.addEventListener('submit', async function(event) {
     chatbox.appendChild(userDiv);
     chatbox.scrollTop = chatbox.scrollHeight;
 
+    history.push({ role: "user", content: userMessage });
+
+    const mensagensLimitadas = [history[0], ...history.slice(-20)];
+
     chatInput.value = '';
 
     try {
         const response = await fetch('/api/chat', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },            
-            body: JSON.stringify({message: userMessage})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: userMessage,
+                history: mensagensLimitadas
+            })
         });
 
         const data = await response.json();
+        const botReply = data.reply || "Erro na resposta";
 
         const botDiv = document.createElement('div');
         botDiv.classList.add('message', 'bot-message');
-        botDiv.textContent = (data.reply || "Erro na resposta");
+        botDiv.textContent = botReply;
         chatbox.appendChild(botDiv);
         chatbox.scrollTop = chatbox.scrollHeight;
+
+        history.push({ role: "assistant", content: botReply });
+
     } catch (err) {
         const botDiv = document.createElement('div');
         botDiv.classList.add('message', 'bot-message');
