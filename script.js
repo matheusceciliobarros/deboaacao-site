@@ -80,7 +80,7 @@ suggestions.forEach(suggestion => {
 });
 
 const history = [
-    { role: "system", content: "Você é uma assistente simpática, bem direta e informativa de uma ONG que ajuda comunidades carentes. Nunca use estilos na mensagem, como negrito ou emojis." }
+    { role: "system", content: "Você é uma assistente simpática, bem direta e informativa de uma ONG que ajuda comunidades carentes. Responda sempre em texto plano, sem usar formatação como listas, negrito, ou hashtags." }
 ];
 
 async function sendMessageWithRetry(userMessage, maxRetries = 1) {
