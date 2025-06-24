@@ -80,10 +80,40 @@ suggestions.forEach(suggestion => {
 });
 
 const history = [
-    { role: "system", content: "Você é uma assistente simpática, direta e informativa de uma ONG que ajuda comunidades carentes. Nunca use estilos na mensagem, como negrito ou emojis." }
+    { role: "system", content: "Você é uma assistente simpática, bem direta e informativa de uma ONG que ajuda comunidades carentes. Nunca use estilos na mensagem, como negrito ou emojis." }
 ];
 
-chatForm.addEventListener('submit', async function(event) {
+async function sendMessageWithRetry(userMessage, maxRetries = 1) {
+    const mensagensLimitadas = [history[0], ...history.slice(-20)];
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: userMessage,
+                    history: mensagensLimitadas
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.reply && typeof data.reply === "string") {
+                return data.reply;
+            } else {
+                throw new Error("Erro: Resposta inválida");
+            }
+
+        } catch (err) {
+            if (attempt === maxRetries) {
+                return "Desculpe, houve um erro. Tente novamente em instantes.";
+            }
+        }
+    }
+}
+
+chatForm.addEventListener('submit', async function (event) {
     event.preventDefault();
 
     const userMessage = chatInput.value.trim();
@@ -96,42 +126,19 @@ chatForm.addEventListener('submit', async function(event) {
     chatbox.scrollTop = chatbox.scrollHeight;
 
     history.push({ role: "user", content: userMessage });
-
-    const mensagensLimitadas = [history[0], ...history.slice(-20)];
-
     chatInput.value = '';
 
-    try {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: userMessage,
-                history: mensagensLimitadas
-            })
-        });
+    const botReply = await sendMessageWithRetry(userMessage);
 
-        const data = await response.json();
-        const botReply = data.reply || "Erro na resposta";
+    const botDiv = document.createElement('div');
+    botDiv.classList.add('message', 'bot-message');
+    botDiv.textContent = botReply;
+    chatbox.appendChild(botDiv);
+    chatbox.scrollTop = chatbox.scrollHeight;
 
-        const botDiv = document.createElement('div');
-        botDiv.classList.add('message', 'bot-message');
-        botDiv.textContent = botReply;
-        chatbox.appendChild(botDiv);
-        chatbox.scrollTop = chatbox.scrollHeight;
-
-        history.push({ role: "assistant", content: botReply });
-
-    } catch (err) {
-        const botDiv = document.createElement('div');
-        botDiv.classList.add('message', 'bot-message');
-        botDiv.textContent = "Erro ao conectar com o chatbot.";
-        chatbox.appendChild(botDiv);
-        chatbox.scrollTop = chatbox.scrollHeight;
-    }
+    history.push({ role: "assistant", content: botReply });
 });
 
-// Mensagem inicial automática
 window.onload = function() {
     const botDiv = document.createElement('div');
     botDiv.classList.add('message', 'bot-message');
