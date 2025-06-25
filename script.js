@@ -54,6 +54,15 @@ loadMap(currentMapIndex);
 
 // chatbot
 
+document.getElementById('chatbot-btn').addEventListener('click', function () {
+    document.getElementById('chatbot-btn').style.scale = 0;
+    document.getElementById('chatbot').style.scale = 1;
+});
+document.getElementById('close-chat').addEventListener('click', function () {
+    document.getElementById('chatbot').style.scale = 0;
+    document.getElementById('chatbot-btn').style.scale = 1;
+});
+
 const chatForm = document.getElementById('chat-form');
 const chatInput = chatForm.querySelector('input');
 const chatbox = document.getElementById('chatbox');
@@ -64,35 +73,41 @@ const suggestions = [
 ];
 
 const suggestionsDiv = document.getElementById('suggestions');
+let suggestionClicked = null;
 
 suggestions.forEach(suggestion => {
     const btn = document.createElement('button');
     btn.textContent = suggestion;
     btn.type = "button";
     btn.classList.add('suggestion-btn');
-    
     btn.addEventListener('click', () => {
         chatInput.value = suggestion;
         chatInput.focus();
+        suggestionClicked = suggestion;
     });
-
     suggestionsDiv.appendChild(btn);
 });
 
 const history = [
-    { role: "system", content: "Você é uma assistente simpática, bem direta e informativa de uma ONG que ajuda comunidades carentes. Responda sempre em texto plano, sem usar formatação como listas, negrito, ou hashtags." }
+    {
+        role: "system",
+        content: ( 
+            "Importante: Você é uma assistente simpática, bem direta e informativa desse site que ajuda comunidades carentes com informações, cujo nome desse projeto é 'de boa ação' e o usuário conversa com você através do site deste projeto que você faz parte."
+            +"Você representa a Carolina Maria de Jesus. Você tem um conhecimento amplo sobre ONGs, cozinhas comunitárias, Pontos de Alimentos, Banco de Alimentos, e Serviços Gratuitos."
+            +"Evite usar emojis."
+        )
+    }
 ];
-
-async function sendMessageWithRetry(userMessage, maxRetries = 1) {
+async function sendMessageWithRetry(maxRetries = 1) {
     const mensagensLimitadas = [history[0], ...history.slice(-20)];
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
+                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: userMessage,
                     history: mensagensLimitadas
                 })
             });
@@ -128,15 +143,37 @@ chatForm.addEventListener('submit', async function (event) {
     history.push({ role: "user", content: userMessage });
     chatInput.value = '';
 
+    showLoader();
+
     const botReply = await sendMessageWithRetry(userMessage);
+
+    hideLoader();
 
     const botDiv = document.createElement('div');
     botDiv.classList.add('message', 'bot-message');
-    botDiv.textContent = botReply;
+
+    if (
+        botReply === "Desculpe, houve um erro. Tente novamente em instantes." ||
+        botReply.startsWith("Erro:")
+    ) {
+        botDiv.textContent = botReply;
+        botDiv.style.color = "#c00";
+        botDiv.style.fontWeight = "bold";
+    } else {
+        const rawHTML = marked.parse(botReply);
+        const cleanHTML = DOMPurify.sanitize(rawHTML);
+        botDiv.innerHTML = cleanHTML;
+        history.push({ role: "assistant", content: botReply });
+
+        if (suggestionClicked && userMessage === suggestionClicked) {
+            suggestionsDiv.style.display = "none";
+        }
+    }
+
     chatbox.appendChild(botDiv);
     chatbox.scrollTop = chatbox.scrollHeight;
 
-    history.push({ role: "assistant", content: botReply });
+    suggestionClicked = null;
 });
 
 window.onload = function() {
