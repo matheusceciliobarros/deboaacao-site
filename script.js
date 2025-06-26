@@ -57,6 +57,7 @@ loadMap(currentMapIndex);
 document.getElementById('chatbot-btn').addEventListener('click', function () {
     document.getElementById('chatbot-btn').style.scale = 0;
     document.getElementById('chatbot').style.scale = 1;
+    chatInput.focus();
 });
 document.getElementById('close-chat').addEventListener('click', function () {
     document.getElementById('chatbot').style.scale = 0;
@@ -145,7 +146,7 @@ chatForm.addEventListener('submit', async function (event) {
 
     document.getElementById('chat-loader').style.display = 'block';
 
-    const botReply = await sendMessageWithRetry(userMessage);
+    const botReply = await sendMessageWithRetry();
 
     document.getElementById('chat-loader').style.display = 'none';
 
