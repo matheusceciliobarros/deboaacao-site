@@ -154,7 +154,7 @@ chatForm.addEventListener('submit', async function (event) {
     botDiv.classList.add('message', 'bot-message');
     if (
         botReply === "Desculpe, houve um erro. Tente novamente em instantes." ||
-        (typeof botReply === 'string' && botReply.startsWith("Erro:"))
+        botReply.startsWith("Erro:")
     ) {
         botDiv.textContent = botReply;
         botDiv.style.color = "#c00";
@@ -179,7 +179,7 @@ chatForm.addEventListener('submit', async function (event) {
 window.onload = function() {
     const botDiv = document.createElement('div');
     botDiv.classList.add('message', 'bot-message');
-    botDiv.textContent = "Olá! Sou a Carolina. Pode me perguntar qualquer coisa, sobre ONGs, cozinhas comunitárias ou minha história!";
+    botDiv.textContent = "Olá! Pode me perguntar qualquer coisa, como sobre ONGs, cozinhas comunitárias ou minha história!";
     chatbox.appendChild(botDiv);
     chatbox.scrollTop = chatbox.scrollHeight;
 };
