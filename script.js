@@ -154,7 +154,7 @@ chatForm.addEventListener('submit', async function (event) {
     botDiv.classList.add('message', 'bot-message');
     if (
         botReply === "Desculpe, houve um erro. Tente novamente em instantes." ||
-        botReply.startsWith("Erro:")
+        (typeof botReply === 'string' && botReply.startsWith("Erro:"))
     ) {
         botDiv.textContent = botReply;
         botDiv.style.color = "#c00";
