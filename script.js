@@ -143,15 +143,14 @@ chatForm.addEventListener('submit', async function (event) {
     history.push({ role: "user", content: userMessage });
     chatInput.value = '';
 
-    showLoader();
+    document.getElementById('chat-loader').style.display = 'block';
 
     const botReply = await sendMessageWithRetry(userMessage);
 
-    hideLoader();
+    document.getElementById('chat-loader').style.display = 'none';
 
     const botDiv = document.createElement('div');
     botDiv.classList.add('message', 'bot-message');
-
     if (
         botReply === "Desculpe, houve um erro. Tente novamente em instantes." ||
         botReply.startsWith("Erro:")
