@@ -38,7 +38,9 @@ As respostas são geradas dinamicamente, com base em um histórico de conversa e
 ##🔐 Segurança
 
 O chatbot é acessado apenas por origens permitidas (https://deboaacao.vercel.app).
-As requisições precisam de header Authorization: Bearer <key>. (A chave é definida via variável de ambiente)
+
+As requisições precisam de header Authorization: Bearer <key> (A chave é definida via variável de ambiente).
+
 As mensagens são validadas antes de enviar ao OpenRouter.
 
 ## 📁 Estrutura de arquivos
