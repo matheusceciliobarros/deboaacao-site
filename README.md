@@ -36,13 +36,23 @@ As respostas são geradas dinamicamente, com base em um histórico de conversa e
 ## 📁 Estrutura de arquivos
 
 ```plaintext
-📁 public/
-  ├── index.html          # Página principal
-  ├── style.css           # Estilo visual do site
-  ├── script.js           # Mapas, Interações e Lógica do chatbot
-  └── img/                # Ícones e imagens do projeto
-📁 api/
-  └── chat                # Endpoint para comunicação com o bot
+📁 deboaacao/
+├── 📁 frontend/
+│   ├── index.html          # Página principal
+│   ├── style.css           # Estilo visual do site
+│   ├── script.js           # Mapas, Interações e Lógica do chatbot
+│   └── img/                # Ícones e imagens do projeto
+    └── 📁 api/
+        └── chat.js             # Endpoint para comunicação com o bot
+│
+├── 📁 backend/
+│   ├── chatbot.py          # API Flask para servir o chatbot
+│   ├── requirements.txt
+     
+      
+      
+      
+
 
 ```
 Projeto acadêmico desenvolvido por estudantes engajados em transformar realidades com tecnologia e empatia.
