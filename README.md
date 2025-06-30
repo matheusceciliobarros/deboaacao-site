@@ -3,6 +3,7 @@
 "Doar é um ato de empatia e solidariedade! Nossa página conecta quem quer ajudar e quem mais precisa, promovendo esperança e dignidade."
 
 Se quiser olhar o site, acesse pelo link: https://deboaacao.vercel.app/
+
 Espero que goste
 
 **De Boa Ação** é um projeto web que conecta pessoas a pontos de doação e serviços sociais gratuitos em São Paulo, promovendo empatia, solidariedade e inclusão social. Nosso foco está nos Objetivos de Desenvolvimento Sustentável da ONU (ODS 1, 2 e 10)
@@ -11,7 +12,7 @@ Espero que goste
 
 - **Mapa interativo** com pontos de doação e serviços sociais.
 - Navegação simples entre diferentes locais.
-- Layout responsivo e acessível.
+- Layout responsivo e acessível para diversas telas.
 
 ## 💬 Chatbot Interativo
 
@@ -30,14 +31,20 @@ As respostas são geradas dinamicamente, com base em um histórico de conversa e
 - HTML5
 - CSS3
 - JavaScript (Vanilla)
-- [marked.js](https://github.com/markedjs/marked) + [DOMPurify](https://github.com/cure53/DOMPurify) para renderizar mensagens do chatbot com segurança.
-- API backend integrada
+- PYTHON (Flask)
+- OpenRouter API
+- CORS configurado para permitir chamadas apenas do domínio do frontend
+
+##🔐 Segurança
+
+O chatbot é acessado apenas por origens permitidas (https://deboaacao.vercel.app).
+As requisições precisam de header Authorization: Bearer <key>. (A chave é definida via variável de ambiente)
+As mensagens são validadas antes de enviar ao OpenRouter.
 
 ## 📁 Estrutura de arquivos
 
 ```plaintext
 📁 deboaacao/
-├── 📁 frontend/
 │   ├── index.html          # Página principal
 │   ├── style.css           # Estilo visual do site
 │   ├── script.js           # Mapas, Interações e Lógica do chatbot
