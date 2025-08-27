@@ -4,7 +4,10 @@ export default async function handler(req, res) {
     }
     
     try {
-        console.log("KEY:", process.env.key);
+        console.log("KEY:", process.env.key ? "Definida" : "Não definida");
+        console.log("Enviando requisição para:", 'https://projeto-deboacao.onrender.com/chat');
+        console.log("Body da requisição:", JSON.stringify(req.body));
+        
         const resposta = await fetch('https://projeto-deboacao.onrender.com/chat', {
             method: 'POST',
             headers: {
@@ -13,6 +16,10 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify(req.body)
         });
+
+        console.log("Status da resposta:", resposta.status);
+        console.log("Headers da resposta:", Object.fromEntries(resposta.headers.entries()));
+        
         const contentType = resposta.headers.get("content-type");
 
         if (!resposta.ok) {
@@ -23,7 +30,11 @@ export default async function handler(req, res) {
         
         if (!contentType || !contentType.includes("application/json")) {
             const texto = await resposta.text();
-            return res.status(500).json({ error: 'Resposta não é JSON', detalhes: texto });
+            return res.status(resposta.status).json({ 
+                error: 'Erro da API externa', 
+                detalhes: texto,
+                status: resposta.status
+            });
         }
         
         const data = await resposta.json();
@@ -34,3 +45,4 @@ export default async function handler(req, res) {
         res.status(500).json({ error: 'Erro interno' });
     }
 }
+
