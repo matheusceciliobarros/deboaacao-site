@@ -44,7 +44,7 @@ def chat():
                 "Content-Type": "application/json"
             },
             json={
-                "model": "deepseek/deepseek-chat-v3-0324:free",
+                "model": "openai/gpt-oss-20b:free",
                 "messages": mensagens
             }
         )
@@ -57,3 +57,4 @@ def chat():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
