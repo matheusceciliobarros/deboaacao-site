@@ -4,6 +4,7 @@ export default async function handler(req, res) {
     }
     
     try {
+        res.setHeader('Cache-Control', 'no-store');
         console.log("KEY:", process.env.key ? "Definida" : "Não definida");
         console.log("Enviando requisição para:", 'https://projeto-deboacao.onrender.com/chat');
         console.log("Body da requisição:", JSON.stringify(req.body));
@@ -16,33 +17,40 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify(req.body)
         });
-
+        
         console.log("Status da resposta:", resposta.status);
         console.log("Headers da resposta:", Object.fromEntries(resposta.headers.entries()));
         
-        const contentType = resposta.headers.get("content-type");
+        const contentType = resposta.headers.get("content-type") || '';
 
         if (!resposta.ok) {
-            const texto = await resposta.text();
-            console.error("Erro da API:", texto);
-            return res.status(500).json({ error: 'Erro da API externa', detalhes: texto });
+            if (contentType.includes('application/json')) {
+                const data = await resposta.json();
+                console.error("Erro da API (JSON):", data);
+                return res.status(resposta.status).json(data);
+            } else {
+                const texto = await resposta.text();
+                console.error("Erro da API (texto):", texto);
+                return res.status(resposta.status).json({ error: 'upstream_text', message: texto });
+            }
         }
         
-        if (!contentType || !contentType.includes("application/json")) {
+        if (!contentType.includes("application/json")) {
             const texto = await resposta.text();
-            return res.status(resposta.status).json({ 
-                error: 'Erro da API externa', 
-                detalhes: texto,
-                status: resposta.status
-            });
+            console.error("Resposta não é JSON:", texto);
+            return res.status(502).json({ error: 'upstream_non_json', message: 'Resposta inválida do servidor.' });
         }
         
         const data = await resposta.json();
-        res.status(200).json(data);
+        console.log("Dados recebidos:", data);
+        return res.status(200).json(data);
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro interno' });
+        console.error("Erro no handler:", error);
+        return res.status(500).json({ 
+            error: 'proxy_internal_error', 
+            message: 'Erro interno no proxy.',
+            detalhes: error.message
+        });
     }
 }
-
