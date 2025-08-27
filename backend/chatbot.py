@@ -7,7 +7,6 @@ import requests
 app = Flask(__name__)
 CORS(app, origins=["https://deboaacao.vercel.app"])
 
-# Configurar logging
 logging.basicConfig(level=logging.INFO)
 app.logger.setLevel(logging.INFO)
 
@@ -82,7 +81,6 @@ def chat():
         app.logger.error("API_KEY não configurada")
         return jsonify({'reply': 'Erro: API key não configurada no servidor'}), 500
 
-    # Instrução adicional do servidor para forçar a resposta limpa
     server_instruction = (
         "IMPORTANTE: Você deve responder EXCLUSIVAMENTE dentro das tags <final> e </final>. "
         "NÃO escreva NADA antes, depois ou fora dessas tags. "
@@ -103,7 +101,7 @@ def chat():
                 "model": "openai/gpt-oss-20b:free",
                 "messages": mensagens_com_instrucoes,
                 "temperature": 0.7,
-                "max_tokens": 500
+                "max_tokens": 700
             },
             timeout=30
         )
@@ -127,7 +125,6 @@ def chat():
             app.logger.error(f"Primeiro choice não contém 'message': {response_data['choices'][0]}")
             return jsonify({'reply': 'Formato de resposta inválido do provedor.'}), 500
             
-        # Extrair conteúdo da resposta
         msg = response_data['choices'][0].get('message', {})
         reply = msg.get('content') or ''
         
@@ -135,13 +132,13 @@ def chat():
         
         # Extrair SOMENTE o conteúdo dentro de <final>...</final>
         import re
-        match = re.search(r"<final>(.*?)</final>", reply, re.DOTALL | re.IGNORECASE)
-        if match:
-            cleaned_reply = match.group(1).strip()
-            app.logger.info(f"Resposta limpa extraída: {cleaned_reply}")
+        # Buscar TODAS as ocorrências e pegar a última (mais confiável)
+        matches = re.findall(r"<final>(.*?)</final>", reply, re.DOTALL | re.IGNORECASE)
+        if matches:
+            cleaned_reply = matches[-1].strip()
+            app.logger.info(f"Resposta limpa extraída (última tag): {cleaned_reply}")
         else:
             app.logger.warning(f"Tags <final> não encontradas na resposta: {reply}")
-            # Fallback: tentar extrair uma resposta básica se não houver tags
             lines = reply.strip().split('\n')
             cleaned_reply = lines[-1].strip() if lines else "Desculpe, não consegui processar sua mensagem."
 
