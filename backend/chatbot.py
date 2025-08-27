@@ -57,10 +57,27 @@ def chat():
                 "Content-Type": "application/json"
             },
             json={
-                "model": "meta-llama/llama-3.1-8b-instruct:free",
+                "model": "openai/gpt-oss-20b:free",
                 "messages": mensagens_com_instrucoes,
                 "temperature": 0.7,
-                "max_tokens": 500
+                "max_tokens": 500,
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "final_answer",
+                            "description": "Retorna exclusivamente a resposta final pronta para o usuário, sem raciocínio interno.",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "text": {"type": "string", "description": "Resposta final para o usuário."}
+                                },
+                                "required": ["text"]
+                            }
+                        }
+                    }
+                ],
+                "tool_choice": {"type": "function", "function": {"name": "final_answer"}}
             }
         )
         response.raise_for_status()
@@ -79,16 +96,40 @@ def chat():
             app.logger.error(f"Primeiro choice não contém 'message': {response_data['choices'][0]}")
             return jsonify({'reply': 'Erro: Formato de resposta inválido'}), 500
             
-        reply = response_data['choices'][0]['message']['content']
+        # Prioridade 1: tentar extrair via tool_call
+        msg = response_data['choices'][0].get('message', {})
+        tool_calls = msg.get('tool_calls') or []
+        cleaned_reply = None
+        if tool_calls:
+            for call in tool_calls:
+                function_call = (call or {}).get('function') or {}
+                if function_call.get('name') == 'final_answer':
+                    import json
+                    try:
+                        args_raw = function_call.get('arguments')
+                        if isinstance(args_raw, str):
+                            args = json.loads(args_raw)
+                        elif isinstance(args_raw, dict):
+                            args = args_raw
+                        else:
+                            args = {}
+                        text = (args.get('text') or '').strip()
+                        if text:
+                            cleaned_reply = text
+                            break
+                    except Exception as e:
+                        app.logger.warning(f"Falha ao parsear arguments do tool_call: {e}")
 
-        # Extrair SOMENTE o conteúdo dentro de <final>...</final>
-        import re
-        match = re.search(r"<final>([\s\S]*?)</final>", reply, re.IGNORECASE)
-        if match:
-            cleaned_reply = match.group(1).strip()
-        else:
-            app.logger.warning("Resposta sem tags <final>: retornando conteúdo bruto.")
-            cleaned_reply = reply.strip()
+        # Prioridade 2: extrair SOMENTE o conteúdo dentro de <final>...</final>
+        if cleaned_reply is None:
+            reply = msg.get('content') or ''
+            import re
+            match = re.search(r"<final>([\s\S]*?)</final>", reply, re.IGNORECASE)
+            if match:
+                cleaned_reply = match.group(1).strip()
+        if not cleaned_reply:
+            app.logger.warning("Resposta sem tool_call 'final_answer' e sem tags <final>; retornando erro controlado.")
+            return jsonify({'reply': 'Desculpe, não consegui gerar a resposta agora. Tente novamente.'}), 502
 
         return jsonify({'reply': cleaned_reply})
         
