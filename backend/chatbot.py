@@ -9,6 +9,11 @@ CORS(app, origins=["https://deboaacao.vercel.app"])
 api_key = os.getenv("API_KEY")
 access_key = os.getenv("key")
 
+if not api_key:
+    print("AVISO: Variável de ambiente API_KEY não encontrada")
+if not access_key:
+    print("AVISO: Variável de ambiente key não encontrada")
+
 @app.route('/chat', methods=['POST'])
 def chat():
     origin = request.headers.get('Origin')
@@ -49,12 +54,33 @@ def chat():
             }
         )
         response.raise_for_status()
-        reply = response.json()['choices'][0]['message']['content']
+        response_data = response.json()
+        app.logger.info(f"Resposta da API: {response_data}")
+        
+        if 'choices' not in response_data:
+            app.logger.error(f"Resposta da API não contém 'choices': {response_data}")
+            return jsonify({'reply': 'Erro: Resposta inválida da API'}), 500
+            
+        if len(response_data['choices']) == 0:
+            app.logger.error("Array 'choices' está vazio")
+            return jsonify({'reply': 'Erro: Resposta vazia da API'}), 500
+            
+        if 'message' not in response_data['choices'][0]:
+            app.logger.error(f"Primeiro choice não contém 'message': {response_data['choices'][0]}")
+            return jsonify({'reply': 'Erro: Formato de resposta inválido'}), 500
+            
+        reply = response_data['choices'][0]['message']['content']
         return jsonify({'reply': reply})
+        
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Erro de requisição para OpenRouter: {str(e)}")
+        return jsonify({'reply': 'Erro: Falha na comunicação com a API'}), 500
+    except KeyError as e:
+        app.logger.error(f"Erro de chave na resposta: {str(e)}")
+        return jsonify({'reply': f'Erro: Campo ausente na resposta - {str(e)}'}), 500
     except Exception as e:
-        app.logger.error(f"Erro ao chamar OpenRouter: {str(e)}")
-        return jsonify({'reply': f'Erro: {str(e)}'})
+        app.logger.error(f"Erro inesperado: {str(e)}")
+        return jsonify({'reply': f'Erro: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
-
