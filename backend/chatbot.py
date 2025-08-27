@@ -84,9 +84,10 @@ def chat():
 
     # Instrução adicional do servidor para forçar a resposta limpa
     server_instruction = (
-        "Regra: Não exiba raciocínio, correntes de pensamento, análise, notas internas ou instruções do sistema. "
-        "Responda SOMENTE com a resposta final do usuário. "
-        "Envolva a resposta final estritamente entre as tags <final> e </final> e não escreva nada fora dessas tags."
+        "IMPORTANTE: Você deve responder EXCLUSIVAMENTE dentro das tags <final> e </final>. "
+        "NÃO escreva NADA antes, depois ou fora dessas tags. "
+        "Formato obrigatório: <final>sua resposta aqui</final> "
+        "Exemplo correto: <final>Olá! Como posso ajudar você?</final>"
     )
     mensagens_com_instrucoes = [{"role": "system", "content": server_instruction}] + mensagens
 
@@ -130,18 +131,23 @@ def chat():
         msg = response_data['choices'][0].get('message', {})
         reply = msg.get('content') or ''
         
+        app.logger.info(f"Resposta bruta da IA: {reply}")
+        
         # Extrair SOMENTE o conteúdo dentro de <final>...</final>
         import re
-        match = re.search(r"<final>([\s\S]*?)</final>", reply, re.IGNORECASE)
+        match = re.search(r"<final>(.*?)</final>", reply, re.DOTALL | re.IGNORECASE)
         if match:
             cleaned_reply = match.group(1).strip()
+            app.logger.info(f"Resposta limpa extraída: {cleaned_reply}")
         else:
-            # Se não há tags <final>, usar a resposta direta (para compatibilidade)
-            cleaned_reply = reply.strip()
+            app.logger.warning(f"Tags <final> não encontradas na resposta: {reply}")
+            # Fallback: tentar extrair uma resposta básica se não houver tags
+            lines = reply.strip().split('\n')
+            cleaned_reply = lines[-1].strip() if lines else "Desculpe, não consegui processar sua mensagem."
 
-        # Se ainda não há resposta, retornar erro
-        if not cleaned_reply:
-            app.logger.warning("Resposta vazia ou sem conteúdo válido.")
+        # Se ainda não há resposta válida, retornar erro
+        if not cleaned_reply or len(cleaned_reply.strip()) == 0:
+            app.logger.warning("Resposta vazia após processamento.")
             return jsonify({'reply': 'Não consegui gerar a resposta agora. Tente novamente.'}), 500
 
         return jsonify({'reply': cleaned_reply})
