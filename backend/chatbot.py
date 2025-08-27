@@ -200,29 +200,48 @@ def chat():
         
         # Extrair SOMENTE o conteúdo dentro de <final>...</final>
         import re
+        
+        # Método melhorado para extrair resposta limpa
+        cleaned_reply = None
+        
+        # Primeiro: procurar por tags <final> completas
         matches = re.findall(r"<final>(.*?)</final>", reply, re.DOTALL | re.IGNORECASE)
         if matches:
             cleaned_reply = matches[-1].strip()
-            app.logger.info(f"Resposta limpa extraída (última tag): {cleaned_reply}")
-        else:
-            app.logger.warning(f"Tags <final> não encontradas na resposta: {reply}")
-            # Para o modelo z-ai, tentar extrair apenas a resposta final
+            app.logger.info(f"Encontradas {len(matches)} tags <final>, usando a última: {cleaned_reply}")
+        
+        # Segundo: para z-ai, procurar padrão "assistantfinal" sem tags
+        if not cleaned_reply and usar_pesquisa:
+            assistant_match = re.search(r"assistantfinal(.+)$", reply, re.DOTALL | re.IGNORECASE)
+            if assistant_match:
+                cleaned_reply = assistant_match.group(1).strip()
+                app.logger.info(f"Encontrado padrão 'assistantfinal': {cleaned_reply}")
+        
+        # Terceiro: pegar tudo depois da última palavra "final"
+        if not cleaned_reply:
+            final_index = reply.lower().rfind("final")
+            if final_index != -1:
+                potential_reply = reply[final_index + 5:].strip()
+                # Remover qualquer tag que sobrou
+                potential_reply = re.sub(r'<[^>]*>', '', potential_reply).strip()
+                if potential_reply and len(potential_reply) > 10:  # Resposta mínima razoável
+                    cleaned_reply = potential_reply
+                    app.logger.info(f"Extraído após último 'final': {cleaned_reply}")
+        
+        # Último recurso: filtrar por heurística
+        if not cleaned_reply:
+            app.logger.warning("Usando método de fallback para extrair resposta")
             if usar_pesquisa:
-                # Tentar encontrar padrões de resposta final do z-ai
-                # O modelo z-ai às vezes termina com a resposta direta sem tags
+                # Para z-ai: remover analysis/reasoning e pegar o resto
                 lines = [line.strip() for line in reply.strip().split('\n') if line.strip()]
-                if lines:
-                    # Pegar as últimas linhas que não sejam raciocínio
-                    resposta_lines = []
-                    for line in reversed(lines):
-                        if not any(palavra in line.lower() for palavra in ['reasoning', 'analysis', 'devo', 'preciso', 'vou']):
-                            resposta_lines.insert(0, line)
-                        else:
-                            break
-                    cleaned_reply = ' '.join(resposta_lines) if resposta_lines else lines[-1]
-                else:
-                    cleaned_reply = "Desculpe, não consegui processar sua mensagem."
+                clean_lines = []
+                for line in lines:
+                    line_lower = line.lower()
+                    if not any(palavra in line_lower for palavra in ['analysis', 'reasoning', 'user asks', 'deve responder', 'preciso']):
+                        clean_lines.append(line)
+                cleaned_reply = ' '.join(clean_lines) if clean_lines else "Desculpe, não consegui processar sua mensagem."
             else:
+                # Para gpt-oss: usar última linha
                 lines = reply.strip().split('\n')
                 cleaned_reply = lines[-1].strip() if lines else "Desculpe, não consegui processar sua mensagem."
 
