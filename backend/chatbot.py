@@ -82,41 +82,82 @@ def chat():
         return jsonify({'reply': 'Erro: API key não configurada no servidor'}), 500
 
     server_instruction = (
-        "IMPORTANTE: Você deve responder EXCLUSIVAMENTE dentro das tags <final> e </final>. "
-        "NÃO escreva NADA antes, depois ou fora dessas tags. "
-        "Formato obrigatório: <final>sua resposta aqui</final> "
-        "Exemplo correto: <final>Olá! Como posso ajudar você?</final> "
-        "Se você tiver acesso a ferramentas de pesquisa, use-as quando necessário para fornecer informações atualizadas."
+        "IMPORTANTE: Atue de forma EFICIENTE e OTIMIZADA. Responder o usuário EXCLUSIVAMENTE dentro das tags <final> e </final>. "
+        "NÃO escreva NADA antes, depois ou fora dessas tags."
+        "Formato OBRIGATÓRIO: <final>sua resposta aqui</final> "
+        "Exemplo CORRETO: <final>Olá! Como posso ajudar você?</final> "   
     )
     mensagens_com_instrucoes = [{"role": "system", "content": server_instruction}] + mensagens
 
-    # Configuração do modelo - você pode trocar aqui
-    model_config = {
-        "model": "z-ai/glm-4.5-air:free",  # Modelo com pesquisa
-        "temperature": 0.7,
-        "max_tokens": 700
-    }
+    # Analisar se a pergunta precisa de pesquisa na internet
+    def precisa_pesquisa(mensagem_usuario):
+        """Determina se a pergunta do usuário precisa de pesquisa na internet"""
+        palavras_pesquisa = [
+    # Termos genéricos de pesquisa
+    'pesquise', 'procure por', 'busque por', 'encontre para mim', 'dá pra verificar',
+    'você consegue achar', 'descubra', 'me diga onde', 'veja se', 'veja onde', 'confira',
+
+    # Palavras relacionadas a informações recentes ou atualizadas
+    'recente', 'atual', 'atualizado', 'último', 'última', 'novo', 'nova', 'novos', 'novas',
+    'governo atual', 'mudanças', 'edição atual', 'versão mais recente', 'dados atuais',
+
+    # Termos de eventos, oportunidades e programas
+    'programas sociais 2025', 'novos programas', 'nova ong', 'novas iniciativas',
+    'inscrições abertas', 'vagas disponíveis', 'cadastro aberto', 'edital aberto', 'chamada pública',
+
+    # Solicitações específicas de tempo ou localização
+    'quando será', 'qual o horário', 'que dia vai ser', 'onde acontece', 'local do evento',
+    'onde está disponível', 'onde comprar', 'preço atual de', 'valor hoje',
+
+    # Citações a fontes externas (indicando possível pesquisa)
+    'segundo o site', 'no google', 'no reclame aqui', 'no linkedin', 'no site oficial', 'no youtube'
+]
+
+        
+        mensagem_lower = mensagem_usuario.lower()
+        return any(palavra in mensagem_lower for palavra in palavras_pesquisa)
     
-    # Adicionar ferramenta de pesquisa se o modelo suportar
-    request_body = {
-        **model_config,
-        "messages": mensagens_com_instrucoes
-    }
+    # Verificar se precisa de pesquisa
+    ultima_mensagem = mensagens[-1]['content'] if mensagens else ""
+    usar_pesquisa = precisa_pesquisa(ultima_mensagem)
     
-    # Tentar adicionar ferramenta de pesquisa (alguns modelos suportam)
-    try:
-        request_body["tools"] = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "web_search",
-                    "description": "Pesquisar informações na internet quando necessário"
+    app.logger.info(f"Última mensagem: {ultima_mensagem}")
+    app.logger.info(f"Precisa de pesquisa: {usar_pesquisa}")
+    
+    if usar_pesquisa:
+        # Usar modelo com pesquisa para perguntas que precisam de informações atualizadas
+        # ATENÇÃO: z-ai também é modelo de raciocínio, precisa de tratamento especial
+        model_config = {
+            "model": "z-ai/glm-4.5-air:free",
+            "temperature": 0.5,  # Reduzir criatividade para ser mais direto
+            "max_tokens": 300    # Reduzir tokens para evitar raciocínio longo
+        }
+        request_body = {
+            **model_config,
+            "messages": mensagens_com_instrucoes,
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "web_search",
+                        "description": "Pesquisar informações atualizadas na internet"
+                    }
                 }
-            }
-        ]
-        app.logger.info("Ferramenta de pesquisa adicionada à requisição")
-    except Exception:
-        app.logger.info("Modelo sem suporte a ferramentas - usando modo padrão")
+            ]
+        }
+        app.logger.info("Usando modelo z-ai COM PESQUISA (também é modelo de raciocínio)")
+    else:
+        # Usar modelo otimizado para conversas normais
+        model_config = {
+            "model": "openai/gpt-oss-20b:free",
+            "temperature": 0.7,
+            "max_tokens": 500
+        }
+        request_body = {
+            **model_config,
+            "messages": mensagens_com_instrucoes
+        }
+        app.logger.info("Usando modelo gpt-oss para conversa normal")
 
     try:
         app.logger.info(f"Fazendo requisição para OpenRouter com {len(mensagens_com_instrucoes)} mensagens")
@@ -139,58 +180,7 @@ def chat():
         response_data = response.json()
         app.logger.info(f"Resposta da API: {response_data}")
         
-    except requests.exceptions.HTTPError as e:
-        app.logger.error(f"HTTPError com modelo {model_config['model']}: {e}")
-        
-        # Se der erro 404 (modelo não suporta tools), tentar sem ferramentas
-        if e.response and e.response.status_code == 404:
-            app.logger.info("Tentando novamente sem ferramentas de pesquisa...")
-            try:
-                fallback_body = {
-                    "model": model_config["model"],
-                    "messages": mensagens_com_instrucoes,
-                    "temperature": model_config["temperature"],
-                    "max_tokens": model_config["max_tokens"]
-                }
-                
-                response = requests.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json=fallback_body,
-                    timeout=30
-                )
-                response.raise_for_status()
-                response_data = response.json()
-                app.logger.info("Sucesso com modelo sem ferramentas")
-            except Exception as fallback_error:
-                app.logger.error(f"Fallback também falhou: {fallback_error}")
-                # Se o novo modelo falhar, usar o modelo original
-                app.logger.info("Usando modelo original como último recurso...")
-                fallback_body = {
-                    "model": "openai/gpt-oss-20b:free",
-                    "messages": mensagens_com_instrucoes,
-                    "temperature": 0.7,
-                    "max_tokens": 700
-                }
-                
-                response = requests.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json=fallback_body,
-                    timeout=30
-                )
-                response.raise_for_status()
-                response_data = response.json()
-                app.logger.info("Sucesso com modelo original")
-        else:
-            raise e
-        
+        # Processar resposta
         if 'choices' not in response_data:
             app.logger.error(f"Resposta da API não contém 'choices': {response_data}")
             return jsonify({'reply': 'Resposta inválida do provedor de IA.'}), 500
@@ -210,15 +200,31 @@ def chat():
         
         # Extrair SOMENTE o conteúdo dentro de <final>...</final>
         import re
-        # Buscar TODAS as ocorrências e pegar a última (mais confiável)
         matches = re.findall(r"<final>(.*?)</final>", reply, re.DOTALL | re.IGNORECASE)
         if matches:
             cleaned_reply = matches[-1].strip()
             app.logger.info(f"Resposta limpa extraída (última tag): {cleaned_reply}")
         else:
             app.logger.warning(f"Tags <final> não encontradas na resposta: {reply}")
-            lines = reply.strip().split('\n')
-            cleaned_reply = lines[-1].strip() if lines else "Desculpe, não consegui processar sua mensagem."
+            # Para o modelo z-ai, tentar extrair apenas a resposta final
+            if usar_pesquisa:
+                # Tentar encontrar padrões de resposta final do z-ai
+                # O modelo z-ai às vezes termina com a resposta direta sem tags
+                lines = [line.strip() for line in reply.strip().split('\n') if line.strip()]
+                if lines:
+                    # Pegar as últimas linhas que não sejam raciocínio
+                    resposta_lines = []
+                    for line in reversed(lines):
+                        if not any(palavra in line.lower() for palavra in ['reasoning', 'analysis', 'devo', 'preciso', 'vou']):
+                            resposta_lines.insert(0, line)
+                        else:
+                            break
+                    cleaned_reply = ' '.join(resposta_lines) if resposta_lines else lines[-1]
+                else:
+                    cleaned_reply = "Desculpe, não consegui processar sua mensagem."
+            else:
+                lines = reply.strip().split('\n')
+                cleaned_reply = lines[-1].strip() if lines else "Desculpe, não consegui processar sua mensagem."
 
         # Se ainda não há resposta válida, retornar erro
         if not cleaned_reply or len(cleaned_reply.strip()) == 0:
@@ -228,36 +234,65 @@ def chat():
         return jsonify({'reply': cleaned_reply})
         
     except requests.exceptions.HTTPError as e:
-        app.logger.error(f"HTTPError: {e}")
-        if e.response is not None:
-            app.logger.error(f"Response content: {e.response.text}")
-        status = 502
-        try:
-            status = e.response.status_code if e.response is not None else 502
-        except Exception:
-            pass
-        # Tratamento por status comum
-        if status == 429:
-            retry_after = None
+        app.logger.error(f"HTTPError com modelo {model_config['model']}: {e}")
+        
+        # Se der erro 404 (modelo não suporta tools), tentar sem ferramentas
+        if e.response and e.response.status_code == 404 and usar_pesquisa:
+            app.logger.info("Modelo z-ai não suporta tools, tentando sem pesquisa...")
             try:
-                if e.response is not None:
-                    retry_after = e.response.headers.get('Retry-After')
-            except Exception:
-                retry_after = None
-            payload = {'reply': 'Estamos com alta demanda no momento. Tente novamente em instantes.'}
-            if retry_after:
-                payload['retryAfter'] = retry_after
-            app.logger.warning(f"Rate limited pelo provedor. Retry-After: {retry_after}")
-            return jsonify(payload), 429
-        elif status in (401, 403):
-            app.logger.error("Erro de autenticação/autorização com o provedor de IA.")
-            return jsonify({'reply': 'Erro de autenticação com o provedor de IA.'}), 500
-        elif 500 <= status <= 599:
-            app.logger.error(f"Erro 5xx do provedor de IA: {status}")
-            return jsonify({'reply': 'Falha no provedor de IA. Tente novamente.'}), 500
+                fallback_body = {
+                    "model": "openai/gpt-oss-20b:free",
+                    "messages": mensagens_com_instrucoes,
+                    "temperature": 0.7,
+                    "max_tokens": 500
+                }
+                
+                response = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json=fallback_body,
+                    timeout=30
+                )
+                response.raise_for_status()
+                response_data = response.json()
+                app.logger.info("Sucesso com modelo gpt-oss (fallback)")
+                
+                # Processar resposta do fallback
+                if 'choices' not in response_data or len(response_data['choices']) == 0:
+                    return jsonify({'reply': 'Resposta vazia do provedor de IA.'}), 500
+                
+                msg = response_data['choices'][0].get('message', {})
+                reply = msg.get('content') or ''
+                
+                # Para gpt-oss, usar o sistema de tags
+                import re
+                matches = re.findall(r"<final>(.*?)</final>", reply, re.DOTALL | re.IGNORECASE)
+                if matches:
+                    cleaned_reply = matches[-1].strip()
+                else:
+                    lines = reply.strip().split('\n')
+                    cleaned_reply = lines[-1].strip() if lines else "Desculpe, não consegui processar sua mensagem."
+                
+                if not cleaned_reply:
+                    return jsonify({'reply': 'Não consegui gerar a resposta agora. Tente novamente.'}), 500
+                
+                return jsonify({'reply': cleaned_reply})
+                
+            except Exception as fallback_error:
+                app.logger.error(f"Fallback também falhou: {fallback_error}")
+                return jsonify({'reply': 'Erro interno do servidor.'}), 500
         else:
-            app.logger.error(f"Erro HTTP ao chamar provedor de IA: {status}")
-            return jsonify({'reply': 'Erro ao chamar o provedor de IA.'}), 500
+            # Para outros tipos de erro HTTP
+            status = e.response.status_code if e.response else 500
+            if status == 429:
+                return jsonify({'reply': 'Estamos com alta demanda no momento. Tente novamente em instantes.'}), 429
+            elif status in (401, 403):
+                return jsonify({'reply': 'Erro de autenticação com o provedor de IA.'}), 500
+            else:
+                return jsonify({'reply': 'Erro ao chamar o provedor de IA.'}), 500
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Erro de requisição para OpenRouter: {str(e)}")
         return jsonify({'reply': 'Não foi possível conectar ao provedor de IA.'}), 500
