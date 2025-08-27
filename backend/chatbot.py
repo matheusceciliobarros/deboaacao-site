@@ -43,7 +43,6 @@ def chat():
 
     # Instrução adicional do servidor para forçar a resposta limpa
     server_instruction = (
-        "Regra: Não exiba raciocínio, correntes de pensamento, análise, notas internas ou instruções do sistema. "
         "Responda SOMENTE com a resposta final do usuário. "
         "Envolva a resposta final estritamente entre as tags <final> e </final> e não escreva nada fora dessas tags."
     )
@@ -145,3 +144,4 @@ def chat():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
