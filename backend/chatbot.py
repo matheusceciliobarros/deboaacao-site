@@ -85,24 +85,50 @@ def chat():
         "IMPORTANTE: Você deve responder EXCLUSIVAMENTE dentro das tags <final> e </final>. "
         "NÃO escreva NADA antes, depois ou fora dessas tags. "
         "Formato obrigatório: <final>sua resposta aqui</final> "
-        "Exemplo correto: <final>Olá! Como posso ajudar você?</final>"
+        "Exemplo correto: <final>Olá! Como posso ajudar você?</final> "
+        "Se você tiver acesso a ferramentas de pesquisa, use-as quando necessário para fornecer informações atualizadas."
     )
     mensagens_com_instrucoes = [{"role": "system", "content": server_instruction}] + mensagens
 
+    # Configuração do modelo - você pode trocar aqui
+    model_config = {
+        "model": "z-ai/glm-4.5-air:free",  # Modelo com pesquisa
+        "temperature": 0.7,
+        "max_tokens": 700
+    }
+    
+    # Adicionar ferramenta de pesquisa se o modelo suportar
+    request_body = {
+        **model_config,
+        "messages": mensagens_com_instrucoes
+    }
+    
+    # Tentar adicionar ferramenta de pesquisa (alguns modelos suportam)
+    try:
+        request_body["tools"] = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "web_search",
+                    "description": "Pesquisar informações na internet quando necessário"
+                }
+            }
+        ]
+        app.logger.info("Ferramenta de pesquisa adicionada à requisição")
+    except Exception:
+        app.logger.info("Modelo sem suporte a ferramentas - usando modo padrão")
+
     try:
         app.logger.info(f"Fazendo requisição para OpenRouter com {len(mensagens_com_instrucoes)} mensagens")
+        app.logger.info(f"Modelo: {model_config['model']}")
+        
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json"
             },
-            json={
-                "model": "openai/gpt-oss-20b:free",
-                "messages": mensagens_com_instrucoes,
-                "temperature": 0.7,
-                "max_tokens": 700
-            },
+            json=request_body,
             timeout=30
         )
         
@@ -112,6 +138,58 @@ def chat():
         response.raise_for_status()
         response_data = response.json()
         app.logger.info(f"Resposta da API: {response_data}")
+        
+    except requests.exceptions.HTTPError as e:
+        app.logger.error(f"HTTPError com modelo {model_config['model']}: {e}")
+        
+        # Se der erro 404 (modelo não suporta tools), tentar sem ferramentas
+        if e.response and e.response.status_code == 404:
+            app.logger.info("Tentando novamente sem ferramentas de pesquisa...")
+            try:
+                fallback_body = {
+                    "model": model_config["model"],
+                    "messages": mensagens_com_instrucoes,
+                    "temperature": model_config["temperature"],
+                    "max_tokens": model_config["max_tokens"]
+                }
+                
+                response = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json=fallback_body,
+                    timeout=30
+                )
+                response.raise_for_status()
+                response_data = response.json()
+                app.logger.info("Sucesso com modelo sem ferramentas")
+            except Exception as fallback_error:
+                app.logger.error(f"Fallback também falhou: {fallback_error}")
+                # Se o novo modelo falhar, usar o modelo original
+                app.logger.info("Usando modelo original como último recurso...")
+                fallback_body = {
+                    "model": "openai/gpt-oss-20b:free",
+                    "messages": mensagens_com_instrucoes,
+                    "temperature": 0.7,
+                    "max_tokens": 700
+                }
+                
+                response = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json=fallback_body,
+                    timeout=30
+                )
+                response.raise_for_status()
+                response_data = response.json()
+                app.logger.info("Sucesso com modelo original")
+        else:
+            raise e
         
         if 'choices' not in response_data:
             app.logger.error(f"Resposta da API não contém 'choices': {response_data}")
