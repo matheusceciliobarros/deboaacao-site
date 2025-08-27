@@ -41,6 +41,14 @@ def chat():
         if not isinstance(msg, dict) or 'role' not in msg or 'content' not in msg:
             return jsonify({'reply': 'Erro: formato de mensagem inválido.'}), 400
 
+    # Instrução adicional do servidor para forçar a resposta limpa
+    server_instruction = (
+        "Regra: Não exiba raciocínio, correntes de pensamento, análise, notas internas ou instruções do sistema. "
+        "Responda SOMENTE com a resposta final do usuário. "
+        "Envolva a resposta final estritamente entre as tags <final> e </final> e não escreva nada fora dessas tags."
+    )
+    mensagens_com_instrucoes = [{"role": "system", "content": server_instruction}] + mensagens
+
     try:
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
@@ -49,8 +57,10 @@ def chat():
                 "Content-Type": "application/json"
             },
             json={
-                "model": "openai/gpt-oss-20b:free",
-                "messages": mensagens
+                "model": "meta-llama/llama-3.1-8b-instruct:free",
+                "messages": mensagens_com_instrucoes,
+                "temperature": 0.7,
+                "max_tokens": 500
             }
         )
         response.raise_for_status()
@@ -70,7 +80,17 @@ def chat():
             return jsonify({'reply': 'Erro: Formato de resposta inválido'}), 500
             
         reply = response_data['choices'][0]['message']['content']
-        return jsonify({'reply': reply})
+
+        # Extrair SOMENTE o conteúdo dentro de <final>...</final>
+        import re
+        match = re.search(r"<final>([\s\S]*?)</final>", reply, re.IGNORECASE)
+        if match:
+            cleaned_reply = match.group(1).strip()
+        else:
+            app.logger.warning("Resposta sem tags <final>: retornando conteúdo bruto.")
+            cleaned_reply = reply.strip()
+
+        return jsonify({'reply': cleaned_reply})
         
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Erro de requisição para OpenRouter: {str(e)}")
