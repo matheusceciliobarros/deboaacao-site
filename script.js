@@ -113,17 +113,29 @@ async function sendMessageWithRetry(maxRetries = 1) {
                 })
             });
 
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erro HTTP:', response.status, errorText);
+                throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
+            }
+
             const data = await response.json();
+            console.log('Resposta recebida:', data);
 
             if (data.reply && typeof data.reply === "string") {
                 return data.reply;
+            } else if (data.error) {
+                throw new Error(`Erro da API: ${data.error}`);
             } else {
-                throw new Error("Erro: Resposta inválida");
+                console.error('Resposta inválida:', data);
+                throw new Error("Erro: Resposta inválida da API");
             }
 
         } catch (err) {
+            console.error(`Tentativa ${attempt + 1} falhou:`, err);
             if (attempt === maxRetries) {
-                return "Desculpe, houve um erro. Tente novamente em instantes.";
+                return `Desculpe, houve um erro: ${err.message}. Tente novamente em instantes.`;
             }
         }
     }
@@ -183,3 +195,4 @@ window.onload = function() {
     chatbox.appendChild(botDiv);
     chatbox.scrollTop = chatbox.scrollHeight;
 };
+
