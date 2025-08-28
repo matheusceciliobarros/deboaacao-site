@@ -49,7 +49,13 @@ def chat():
             }
         )
         response.raise_for_status()
-        reply = response.json()['choices'][0]['message']['content']
+        raw_reply = response.json()['choices'][0]['message']['content']
+
+        if "assistantfinal" in raw_reply:
+            reply = raw_reply.split("assistantfinal", 1)[1].strip()
+        else:
+            reply = raw_reply.strip()
+
         return jsonify({'reply': reply})
     except Exception as e:
         app.logger.error(f"Erro ao chamar OpenRouter: {str(e)}")
@@ -57,4 +63,5 @@ def chat():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
